@@ -4,7 +4,7 @@ import pandas as pd
 # 1. CONFIGURAZIONE PAGINA
 st.set_page_config(page_title="TEP - Tire Exchange Program", layout="wide", page_icon="🛞")
 
-# 2. CSS AGGIORNATO (FIX CHIRURGICI)
+# 2. CSS "FORZATO" (SELETTORI AD ALTA SPECIFICITÀ)
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
@@ -17,32 +17,36 @@ st.markdown("""
         font-weight: bold !important; 
     }
 
-    /* --- FIX CHECKBOX: BORDO BLU SEMPRE VISIBILE --- */
-    /* Cerchio/Quadrato esterno della checkbox quando NON selezionata */
-    [data-testid="stCheckbox"] div[data-baseweb="checkbox"] {
+    /* --- FIX CHECKBOX: BORDO BLU VISIBILE --- */
+    /* Questo punta direttamente al quadratino della checkbox */
+    [data-testid="stCheckbox"] [data-checked="false"] {
         border: 2px solid #0B1D45 !important;
-        background-color: transparent !important;
     }
-    /* Quando è SELEZIONATA */
-    [data-testid="stCheckbox"] div[aria-checked="true"] {
+    [data-testid="stCheckbox"] [data-checked="true"] {
         background-color: #0B1D45 !important;
+        border: 2px solid #0B1D45 !important;
     }
 
-    /* --- FIX TABELLA: ALLINEAMENTO CENTRALE TITOLI E NUMERI --- */
-    /* Forza il testo delle intestazioni (TH) e delle celle (TD) al centro */
-    [data-testid="stDataFrame"] th, [data-testid="stDataFrame"] td {
+    /* --- FIX TABELLA: ALLINEAMENTO CENTRALE --- */
+    /* Forza l'allineamento di tutte le celle e delle intestazioni */
+    [data-testid="stDataFrame"] div[data-testid="stTable"] th,
+    [data-testid="stDataFrame"] div[data-testid="stTable"] td,
+    div[role="gridcell"], 
+    div[role="columnheader"] {
         text-align: center !important;
+        display: flex !important;
+        align-items: center !important;
         justify-content: center !important;
     }
-    
-    /* Titoli in grassetto */
-    [data-testid="stDataFrame"] th {
+
+    /* Titoli in grassetto Blue */
+    div[role="columnheader"] {
         font-weight: bold !important;
         color: #0B1D45 !important;
     }
 
-    /* Grassetto specifico per la colonna Quantità Restituibile (la terza) */
-    [data-testid="stDataFrame"] tr td:nth-child(3) {
+    /* Grassetto per i dati della colonna Quantità Restituibile */
+    [data-testid="stDataFrame"] div[role="row"] div[role="gridcell"]:nth-child(3) {
         font-weight: bold !important;
     }
 
@@ -87,6 +91,7 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("🔍 Ricerca Cliente")
     
+    # Checkbox
     usa_codice = st.checkbox("Cerca per Codice Cliente")
     
     df_rep = df[df['Sales Representative'] == sales_rep]
@@ -102,7 +107,6 @@ with st.sidebar:
 
 # --- VISUALIZZAZIONE PRINCIPALE ---
 st.title("🛞 TEP: Tire Exchange Program")
-st.info("Benvenuto nel portale TEP. Seleziona il cliente per visualizzare i dettagli.")
 
 st.subheader(f"Riepilogo pneumatici restituibili: {cliente_nome}")
 st.write(f"**Codice:** {cliente_codice} | **Sales Rep:** {sales_rep}")
@@ -112,12 +116,9 @@ df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
 if not df_display.empty:
     df_view = df_display[['Size & Type', 'Quantità Iniziale', 'Quantità restituibile']]
     
-    # Visualizzazione Tabella
-    st.dataframe(
-        df_view,
-        use_container_width=True,
-        hide_index=True
-    )
+    # Utilizziamo st.table invece di st.dataframe se il problema persiste.
+    # st.table è una tabella statica molto più facile da stilizzare con il CSS.
+    st.table(df_view)
     
     st.markdown("---")
     csv = df_view.to_csv(index=False).encode('utf-8')
