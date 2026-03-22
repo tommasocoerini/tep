@@ -9,22 +9,22 @@ st.set_page_config(page_title="TEP - Program 2026", layout="wide", page_icon="ðŸ
 LOGO_MAIN = "https://github.com/tommasocoerini/tep/blob/main/logo.png?raw=true"
 LOGO_SIDEBAR = "https://github.com/tommasocoerini/tep/blob/main/logo2.png?raw=true"
 
-# 2. CSS AGGIORNATO (Fix posizionamento e dimensione Logo Sidebar)
+# 2. CSS AGGIORNATO (Forzatura posizionamento in alto)
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
     
-    /* Rimuove lo spazio vuoto predefinito in alto nella sidebar */
+    /* Rimuove lo spazio vuoto in alto nella sidebar e forza il logo a salire */
     [data-testid="stSidebarUserContent"] {
-        padding-top: 20px !important;
+        padding-top: 0px !important;
     }
-
-    /* LOGO SIDEBAR - GRANDE E IN ALTO */
+    
     .sidebar-logo {
-        width: 100%; /* Occupa tutta la larghezza disponibile */
-        max-width: 250px; /* Limite per non farlo sgranare */
+        width: 100%;
+        max-width: 280px;
         display: block;
-        margin: 0 auto 30px auto; /* Centrato, con spazio sotto */
+        margin: -50px auto 20px auto; /* Il valore -50px sposta il logo verso l'alto */
+        padding: 0;
     }
 
     /* HEADER PRINCIPALE */
@@ -57,7 +57,7 @@ st.markdown("""
         font-weight: 800 !important;
         font-size: 1.1rem !important;
         margin-bottom: 8px !important;
-        margin-top: 15px !important;
+        margin-top: 10px !important;
         display: block;
     }
 
@@ -136,7 +136,7 @@ df_all = load_data()
 
 # --- SIDEBAR ---
 with st.sidebar:
-    # Logo Sidebar centrato e grande
+    # Logo Sidebar
     st.markdown('<img src="{}" class="sidebar-logo">'.format(LOGO_SIDEBAR), unsafe_allow_html=True)
     
     st.markdown('<span class="sidebar-section-title">Seleziona Sales Representative</span>', unsafe_allow_html=True)
