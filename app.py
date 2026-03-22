@@ -5,87 +5,87 @@ import io
 # 1. CONFIGURAZIONE PAGINA
 st.set_page_config(page_title="TEP - Program 2026", layout="wide", page_icon="📊")
 
-# LINK ALLA TUA IMMAGINE (Sostituisci l'URL qui sotto con quello del tuo file su GitHub)
-LOGO_URL = "https://raw.githubusercontent.com/tuo-username/tuo-repo/main/logo.png"
-
-# 2. CSS AGGIORNATO PER TITOLO CON ICONA
-st.markdown(f"""
+# 2. CSS AGGIORNATO (Includiamo l'icona come SVG nel CSS per sicurezza totale)
+st.markdown("""
     <style>
-    .main {{ background-color: #0B1D45 !important; }}
+    .main { background-color: #0B1D45 !important; }
     
-    .header-container {{
+    .header-container {
         display: flex;
         align-items: center;
         gap: 20px;
-        margin-bottom: 20px;
-    }}
-    .logo-img {{
-        width: 70px;
-    }}
-    .main-title {{ 
+        padding: 20px 0;
+    }
+
+    /* Icona pneumatico stilizzata in SVG (per non fallire mai il caricamento) */
+    .tire-icon {
+        width: 60px;
+        height: 60px;
+        background-color: #FBBD00;
+        mask: url('https://www.svgrepo.com/show/486242/tire.svg') no-repeat center;
+        -webkit-mask: url('https://www.svgrepo.com/show/486242/tire.svg') no-repeat center;
+    }
+
+    .main-title { 
         color: #FBBD00 !important; 
         font-weight: bold !important; 
-        font-size: 2.8rem !important;
+        font-size: 2.2rem !important;
         margin: 0 !important;
-    }}
-    .sub-title {{
+        line-height: 1.1;
+    }
+    .sub-title {
         color: #FFFFFF !important;
-        font-size: 1.1rem !important;
-        margin-top: -5px !important;
-        margin-bottom: 20px !important;
+        font-size: 1rem !important;
+        margin: 0 !important;
         opacity: 0.8;
-    }}
+    }
 
-    /* SIDEBAR */
-    [data-testid="stSidebar"] {{ background-color: #FBBD00 !important; }}
-    [data-testid="stSidebar"] label, [data-testid="stSidebar"] p {{
+    /* Resto dello stile Sidebar e Tabelle */
+    [data-testid="stSidebar"] { background-color: #FBBD00 !important; }
+    [data-testid="stSidebar"] label, [data-testid="stSidebar"] p {
         color: #0B1D45 !important;
         font-weight: bold !important;
-    }}
-    .sidebar-label {{
-        display: flex; align-items: center;
-        gap: 10px; margin-bottom: 8px; margin-top: 4px;
-    }}
-    .sidebar-label-text {{ color: #0B1D45; font-weight: 900; font-size: 1rem; }}
-
-    /* TABELLA HTML TEP */
-    .tep-table {{
+    }
+    .tep-table {
         width: 100%; border-collapse: separate; border-spacing: 0;
         border-radius: 12px; overflow: hidden;
-        font-family: 'Segoe UI', sans-serif; font-size: 0.95rem;
+        font-family: 'Segoe UI', sans-serif;
         box-shadow: 0 4px 24px rgba(0,0,0,0.4); margin-bottom: 25px;
-    }}
-    .tep-table thead tr {{ background-color: #FBBD00; }}
-    .tep-table thead th {{
+    }
+    .tep-table thead tr { background-color: #FBBD00; }
+    .tep-table thead th {
         color: #0B1D45 !important; font-weight: 800;
         text-transform: uppercase; padding: 12px 16px; text-align: center;
-    }}
-    .tep-table thead th:first-child, .tep-table tbody td:first-child {{
-        text-align: left; padding-left: 20px; width: 55%;
-    }}
-    .tep-table thead th:not(:first-child), .tep-table tbody td:not(:first-child) {{
-        text-align: center; width: 22.5%;
-    }}
-    .tep-table tbody tr:nth-child(odd)  {{ background-color: #112259; }}
-    .tep-table tbody tr:nth-child(even) {{ background-color: #0D1D48; }}
-    .tep-table tbody td {{
-        color: #E8EDF8 !important; padding: 11px 16px;
-        border-top: 1px solid rgba(255,255,255,0.07); vertical-align: middle;
-    }}
-    .tep-table tbody td:last-child {{ color: #FBBD00 !important; font-weight: 800; font-size: 1.05rem; }}
-    
-    /* DOWNLOAD BUTTON */
-    .stDownloadButton button {{
+    }
+    .tep-table tbody tr:nth-child(odd)  { background-color: #112259; }
+    .tep-table tbody tr:nth-child(even) { background-color: #0D1D48; }
+    .tep-table tbody td { color: #E8EDF8 !important; padding: 11px 16px; text-align: center; }
+    .tep-table tbody td:first-child { text-align: left; padding-left: 20px; }
+    .tep-table tbody td:last-child { color: #FBBD00 !important; font-weight: 800; }
+
+    .stDownloadButton button {
         background-color: #FBBD00 !important;
         color: #0B1D45 !important;
         border: 2px solid #0B1D45 !important;
         font-weight: bold; width: 100%;
         padding: 15px; border-radius: 8px;
-    }}
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. FUNZIONE EXCEL
+# (Le funzioni load_data e to_excel rimangono identiche a prima...)
+@st.cache_data
+def load_data():
+    data = {
+        'Sales Representative': ['Mario Rossi', 'Mario Rossi', 'Luigi Bianchi', 'Luigi Bianchi'],
+        'Codice Cliente': ['A105', 'B200', 'C001', 'A050'],
+        'Nome Cliente': ['Zeta Tyres', 'Alpha Gomme', 'Beta Ruote', 'Delta Service'],
+        'Size & Type': ['205/55 R16 Summer', '225/45 R17 Winter', '195/65 R15 AllSeason', '245/40 R18 Sport'],
+        'Quantità Iniziale': [10, 20, 15, 30],
+        'Quantità restituibile': [7, 14, 0, 21]
+    }
+    return pd.DataFrame(data)
+
 def to_excel(df, codice, ragione_sociale):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -107,38 +107,25 @@ def to_excel(df, codice, ragione_sociale):
             worksheet.set_column(i, i, max_len)
     return output.getvalue()
 
-# 4. DATI TEST
-@st.cache_data
-def load_data():
-    data = {
-        'Sales Representative': ['Mario Rossi', 'Mario Rossi', 'Luigi Bianchi', 'Luigi Bianchi'],
-        'Codice Cliente': ['A105', 'B200', 'C001', 'A050'],
-        'Nome Cliente': ['Zeta Tyres', 'Alpha Gomme', 'Beta Ruote', 'Delta Service'],
-        'Size & Type': ['205/55 R16 Summer', '225/45 R17 Winter', '195/65 R15 AllSeason', '245/40 R18 Sport'],
-        'Quantità Iniziale': [10, 20, 15, 30],
-        'Quantità restituibile': [7, 14, 0, 21]
-    }
-    return pd.DataFrame(data)
-
 df_all = load_data()
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown('<div class="sidebar-label"><span style="font-size:1.4rem;">👤</span><span class="sidebar-label-text">Sales Representative</span></div>', unsafe_allow_html=True)
+    st.subheader("👤 Sales Rep")
     sales_reps = sorted(df_all['Sales Representative'].unique())
     sales_rep = st.selectbox("Scegli", sales_reps, label_visibility="collapsed")
     st.markdown("---")
-    st.markdown('<div class="sidebar-label"><span style="font-size:1.4rem;">🔍</span><span class="sidebar-label-text">Cliente</span></div>', unsafe_allow_html=True)
+    st.subheader("🔍 Cliente")
     df_rep = df_all[df_all['Sales Representative'] == sales_rep]
     nomi_lista = sorted(df_rep['Nome Cliente'].unique())
     cliente_nome = st.selectbox("Scegli Cliente", nomi_lista, label_visibility="collapsed")
     cliente_codice = df_rep[df_rep['Nome Cliente'] == cliente_nome]['Codice Cliente'].iloc[0]
     df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
 
-# --- CONTENUTO PRINCIPALE CON LOGO ---
+# --- CONTENUTO PRINCIPALE ---
 st.markdown(f"""
     <div class="header-container">
-        <img src="{LOGO_URL}" class="logo-img">
+        <div class="tire-icon"></div>
         <div>
             <h1 class="main-title">TEP: Tire Exchange Program</h1>
             <p class="sub-title">Gestione Resi Stagionali 2026</p>
