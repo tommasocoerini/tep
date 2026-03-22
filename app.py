@@ -1,152 +1,60 @@
-import streamlit as st
-import pandas as pd
-import io
-
-# 1. CONFIGURAZIONE PAGINA
-st.set_page_config(page_title="TEP - Tire Exchange Program", layout="wide", page_icon="🛞")
-
-# 2. CSS PERSONALIZZATO (Stile Claude + Fix Tabelle)
-st.markdown("""
-    <style>
-    .main { background-color: #0B1D45 !important; }
-    h1 { color: #FBBD00 !important; font-weight: bold; }
-
-    /* SIDEBAR */
-    [data-testid="stSidebar"] { background-color: #FBBD00 !important; }
-    [data-testid="stSidebar"] label, [data-testid="stSidebar"] p {
-        color: #0B1D45 !important;
-        font-weight: bold !important;
-    }
-
-    /* Etichette sidebar */
-    .sidebar-label {
-        display: flex; align-items: center;
-        gap: 10px; margin-bottom: 8px; margin-top: 4px;
-    }
-    .sidebar-label-text { color: #0B1D45; font-weight: 900; font-size: 1rem; }
-
-    /* DROPDOWN */
-    div[data-baseweb="select"] {
-        border: 2px solid #0B1D45 !important;
-        background-color: #0B1D45 !important;
-    }
-    div[data-baseweb="select"] div { color: #FBBD00 !important; }
-
-    /* DOWNLOAD BUTTON */
-    .stDownloadButton button {
-        background-color: #FBBD00 !important;
-        color: #0B1D45 !important;
-        border: 2px solid #0B1D45 !important;
-        font-weight: bold; width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-    }
-    .stDownloadButton button:hover {
-        background-color: #FFFFFF !important;
-        border-color: #0B1D45 !important;
-    }
-
-    /* TABELLA HTML TEP */
-    .tep-table {
-        width: 100%; border-collapse: separate; border-spacing: 0;
-        border-radius: 12px; overflow: hidden;
-        font-family: 'Segoe UI', sans-serif; font-size: 0.95rem;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-        margin-bottom: 25px;
-    }
-    .tep-table thead tr { background-color: #FBBD00; }
-    .tep-table thead th {
-        color: #0B1D45 !important; font-weight: 800;
-        text-transform: uppercase; letter-spacing: 0.04em;
-        padding: 12px 16px; text-align: center;
-    }
-    .tep-table thead th:first-child, .tep-table tbody td:first-child {
-        text-align: left; padding-left: 20px; width: 55%;
-    }
-    .tep-table thead th:not(:first-child), .tep-table tbody td:not(:first-child) {
-        text-align: center; width: 22.5%;
-    }
-    .tep-table tbody tr:nth-child(odd)  { background-color: #112259; }
-    .tep-table tbody tr:even { background-color: #0D1D48; }
-    .tep-table tbody tr:hover { background-color: #1a3070; transition: background-color 0.2s ease; }
-    .tep-table tbody td {
-        color: #E8EDF8 !important; padding: 11px 16px;
-        border-top: 1px solid rgba(255,255,255,0.07); vertical-align: middle;
-    }
-    .tep-table tbody td:last-child { color: #FBBD00 !important; font-weight: 800; font-size: 1.05rem; }
-    .badge-zero {
-        display: inline-block; background-color: rgba(255,255,255,0.1);
-        color: #8899BB !important; font-weight: 600 !important;
-        padding: 2px 10px; border-radius: 20px; font-size: 0.9rem;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# 3. FUNZIONE PER EXCEL
-def to_excel(df):
+# --- AGGIORNA LA FUNZIONE TO_EXCEL CON LA NUOVA FORMATTAZIONE ---
+def to_excel(df, codice, ragione_sociale):
     output = io.BytesIO()
+    # Usiamo xlsxwriter per avere il controllo totale del layout
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False, sheet_name='Reso_TEP')
+        df.to_excel(writer, index=False, sheet_name='Reso_TEP', startrow=3)
+        
+        workbook  = writer.book
+        worksheet = writer.sheets['Reso_TEP']
+
+        # DEFINIZIONE FORMATI
+        fmt_header = workbook.add_format({
+            'bold': True,
+            'bg_color': '#D3D3D3', # Grigio chiaro
+            'border': 1,
+            'align': 'center'
+        })
+        
+        fmt_label = workbook.add_format({
+            'bold': True,
+            'bg_color': '#D3D3D3', # Grigio chiaro
+            'border': 1
+        })
+
+        fmt_data_bold = workbook.add_format({'bold': True})
+
+        # 1. INTESTAZIONE PERSONALIZZATA (Righe 1 e 2)
+        worksheet.write('A1', 'CODICE CLIENTE', fmt_label)
+        worksheet.write('B1', codice) # Il codice cliente
+        
+        worksheet.write('A2', 'RAGIONE SOCIALE', fmt_label)
+        worksheet.write('B2', ragione_sociale, fmt_label) # Ragione sociale grigia e grassetto come richiesto
+
+        # 2. FORMATTAZIONE INTESTAZIONI TABELLA (Riga 3 - indice 2 di Excel)
+        # Sovrascriviamo le intestazioni create da pandas per dare lo stile grigio
+        for col_num, value in enumerate(df.columns.values):
+            worksheet.write(2, col_num, value, fmt_header)
+
+        # 3. AUTO-ADATTAMENTO LARGHEZZA COLONNE
+        for i, col in enumerate(df.columns):
+            # Calcola la lunghezza massima tra nome colonna e contenuto
+            column_len = max(df[col].astype(str).map(len).max(), len(col)) + 5
+            worksheet.set_column(i, i, column_len)
+
     return output.getvalue()
 
-# 4. DATI DI TEST
-@st.cache_data
-def load_data():
-    data = {
-        'Sales Representative': ['Mario Rossi', 'Mario Rossi', 'Luigi Bianchi', 'Luigi Bianchi'],
-        'Codice Cliente': ['A105', 'B200', 'C001', 'A050'],
-        'Nome Cliente': ['Zeta Tyres', 'Alpha Gomme', 'Beta Ruote', 'Delta Service'],
-        'Size & Type': ['205/55 R16 Summer', '225/45 R17 Winter', '195/65 R15 AllSeason', '245/40 R18 Sport'],
-        'Quantità Iniziale': [10, 20, 15, 30],
-        'Quantità restituibile': [7, 14, 0, 21]
-    }
-    return pd.DataFrame(data)
-
-df = load_data()
-
-# --- SIDEBAR ---
-with st.sidebar:
-    st.markdown('<div class="sidebar-label"><span style="font-size:1.4rem;">👤</span><span class="sidebar-label-text">Seleziona Sales Representative</span></div>', unsafe_allow_html=True)
-    sales_reps = sorted(df['Sales Representative'].unique())
-    sales_rep = st.selectbox("Scegli Sales Rep", sales_reps, label_visibility="collapsed")
-
-    st.markdown("---")
-
-    st.markdown('<div class="sidebar-label"><span style="font-size:1.4rem;">🔍</span><span class="sidebar-label-text">Seleziona Cliente</span></div>', unsafe_allow_html=True)
-    df_rep = df[df['Sales Representative'] == sales_rep]
-    nomi_lista = sorted(df_rep['Nome Cliente'].unique())
-    cliente_nome = st.selectbox("Seleziona Cliente", nomi_lista, label_visibility="collapsed")
-    cliente_codice = df_rep[df_rep['Nome Cliente'] == cliente_nome]['Codice Cliente'].iloc[0]
-
-# --- CONTENUTO PRINCIPALE ---
-st.title("🛞 TEP: Tire Exchange Program")
-st.subheader(f"Riepilogo pneumatici restituibili: {cliente_nome}")
-st.write(f"**Codice:** {cliente_codice} | **Sales Rep:** {sales_rep}")
-
-df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
-
+# --- NEL MAIN, MODIFICA LA CHIAMATA ALLA FUNZIONE ---
 if not df_display.empty:
     df_view = df_display[['Size & Type', 'Quantità Iniziale', 'Quantità restituibile']].copy()
 
-    # COSTRUZIONE TABELLA HTML
-    rows = []
-    for _, row in df_view.iterrows():
-        qty_rest = row['Quantità restituibile']
-        qty_cell = '<span class="badge-zero">0</span>' if qty_rest == 0 else str(int(qty_rest))
-        rows.append(f"<tr><td>{row['Size & Type']}</td><td>{int(row['Quantità Iniziale'])}</td><td>{qty_cell}</td></tr>")
-
-    rows_html = "".join(rows)
-    table_html = (
-        '<table class="tep-table"><thead><tr>'
-        '<th>Pneumatico</th><th>Qtà Iniziale</th><th>Qtà Restituibile</th>'
-        f'</tr></thead><tbody>{rows_html}</tbody></table>'
-    )
-    st.markdown(table_html, unsafe_allow_html=True)
+    # ... (qui tieni il codice della tabella HTML per la visione a schermo) ...
     
     st.markdown("---")
     
-    # GENERAZIONE EXCEL E DOWNLOAD
-    excel_data = to_excel(df_view)
+    # Passiamo anche il codice e il nome alla funzione excel
+    excel_data = to_excel(df_view, cliente_codice, cliente_nome)
+    
     st.download_button(
         label="📥 SCARICA MODULO DI RESO",
         data=excel_data,
