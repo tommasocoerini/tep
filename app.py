@@ -9,22 +9,36 @@ st.set_page_config(page_title="TEP - Program 2026", layout="wide", page_icon="ðŸ
 LOGO_MAIN = "https://github.com/tommasocoerini/tep/blob/main/logo.png?raw=true"
 LOGO_SIDEBAR = "https://github.com/tommasocoerini/tep/blob/main/logo2.png?raw=true"
 
-# 2. CSS AGGIORNATO (Forzatura posizionamento in alto)
+# 2. CSS - POSIZIONAMENTO ASSOLUTO PER IL LOGO
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
     
-    /* Rimuove lo spazio vuoto in alto nella sidebar e forza il logo a salire */
+    /* TRUCCO PER PORTARE IL LOGO IN CIMA ALLA SIDEBAR */
     [data-testid="stSidebarUserContent"] {
         padding-top: 0px !important;
+        margin-top: 0px !important;
     }
-    
+
+    .sidebar-logo-container {
+        position: absolute;
+        top: -60px; /* Spinge il logo oltre il limite superiore */
+        left: 0;
+        right: 0;
+        text-align: center;
+        padding: 0 10px;
+        z-index: 100;
+    }
+
     .sidebar-logo {
         width: 100%;
-        max-width: 280px;
-        display: block;
-        margin: -50px auto 20px auto; /* Il valore -50px sposta il logo verso l'alto */
-        padding: 0;
+        max-width: 260px;
+        height: auto;
+    }
+
+    /* CREA SPAZIO PER I TESTI SOTTO IL LOGO POSIZIONATO IN ALTO */
+    .sidebar-content-wrapper {
+        margin-top: 100px; /* Regola questo valore per distanziare i menu dal logo */
     }
 
     /* HEADER PRINCIPALE */
@@ -136,8 +150,11 @@ df_all = load_data()
 
 # --- SIDEBAR ---
 with st.sidebar:
-    # Logo Sidebar
-    st.markdown('<img src="{}" class="sidebar-logo">'.format(LOGO_SIDEBAR), unsafe_allow_html=True)
+    # Logo Sidebar in contenitore assoluto
+    st.markdown('<div class="sidebar-logo-container"><img src="{}" class="sidebar-logo"></div>'.format(LOGO_SIDEBAR), unsafe_allow_html=True)
+    
+    # Wrapper per creare spazio sotto il logo assoluto
+    st.markdown('<div class="sidebar-content-wrapper">', unsafe_allow_html=True)
     
     st.markdown('<span class="sidebar-section-title">Seleziona Sales Representative</span>', unsafe_allow_html=True)
     sales_reps = sorted(df_all['Sales Representative'].unique())
@@ -152,6 +169,8 @@ with st.sidebar:
     
     cliente_codice = df_rep[df_rep['Nome Cliente'] == cliente_nome]['Codice Cliente'].iloc[0]
     df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
+    
+    st.markdown('</div>', unsafe_allow_html=True) # Chiude sidebar-content-wrapper
 
 # --- CONTENUTO PRINCIPALE ---
 st.markdown("""
