@@ -2,16 +2,13 @@ import streamlit as st
 import pandas as pd
 import io
 
-# 1. CONFIGURAZIONE PAGINA
 st.set_page_config(page_title="TEP - Program 2026", layout="wide", page_icon="📊")
 
 LOGO_MAIN    = "https://github.com/tommasocoerini/tep/blob/main/logo.png?raw=true"
 LOGO_SIDEBAR = "https://github.com/tommasocoerini/tep/blob/main/logo2.png?raw=true"
 
-# Logo nativo Streamlit: appare in cima alla sidebar (e opzionalmente nell'header)
 st.logo(LOGO_SIDEBAR, link=None)
 
-# 2. CSS
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
@@ -19,15 +16,27 @@ st.markdown("""
     /* SIDEBAR */
     [data-testid="stSidebar"] { background-color: #FBBD00 !important; }
 
-    /* Logo nativo: forza sfondo trasparente e dimensione generosa */
-    [data-testid="stSidebar"] [data-testid="stLogo"] {
-        background-color: transparent !important;
-        padding: 12px 16px !important;
-    }
-    [data-testid="stSidebar"] [data-testid="stLogo"] img {
-        max-width: 200px !important;
-        width: 100% !important;
+    /* LOGO: rimuove il cap di altezza imposto da Streamlit */
+    [data-testid="stLogo"] {
         height: auto !important;
+        max-height: none !important;
+        background-color: transparent !important;
+        padding: 20px 16px 10px 16px !important;
+        width: 100% !important;
+    }
+    [data-testid="stLogo"] img,
+    [data-testid="stLogo"] > img {
+        height: auto !important;
+        max-height: none !important;
+        width: 200px !important;
+        max-width: 200px !important;
+        object-fit: contain !important;
+    }
+    /* Streamlit usa anche un elemento <picture> internamente */
+    [data-testid="stLogo"] picture img {
+        height: auto !important;
+        max-height: none !important;
+        width: 200px !important;
     }
 
     .sidebar-section-title {
@@ -39,14 +48,12 @@ st.markdown("""
         display: block;
     }
 
-    /* Dropdown della sidebar */
     div[data-baseweb="select"] {
         border: 2px solid #0B1D45 !important;
         background-color: #0B1D45 !important;
     }
     div[data-baseweb="select"] div { color: #FBBD00 !important; }
 
-    /* HEADER PRINCIPALE */
     .header-container {
         display: flex; align-items: center;
         gap: 20px; padding-bottom: 20px;
@@ -61,7 +68,6 @@ st.markdown("""
         margin: 0 !important; opacity: 0.8;
     }
 
-    /* TABELLA HTML */
     .tep-table {
         width: 100%; border-collapse: separate; border-spacing: 0;
         border-radius: 12px; overflow: hidden;
@@ -79,7 +85,6 @@ st.markdown("""
     .tep-table tbody td:first-child { text-align: left; padding-left: 20px; }
     .tep-table tbody td:last-child { color: #FBBD00 !important; font-weight: 800; font-size: 1.1rem; }
 
-    /* DOWNLOAD BUTTON */
     .stDownloadButton button {
         background-color: #FBBD00 !important;
         color: #0B1D45 !important;
@@ -91,7 +96,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. DATI E EXCEL
 @st.cache_data
 def load_data():
     data = {
@@ -127,7 +131,6 @@ def to_excel(df, codice, ragione_sociale):
 
 df_all = load_data()
 
-# --- SIDEBAR ---
 with st.sidebar:
     st.markdown('<span class="sidebar-section-title">Seleziona Sales Representative</span>', unsafe_allow_html=True)
     sales_reps = sorted(df_all['Sales Representative'].unique())
@@ -143,7 +146,6 @@ with st.sidebar:
     cliente_codice = df_rep[df_rep['Nome Cliente'] == cliente_nome]['Codice Cliente'].iloc[0]
     df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
 
-# --- CONTENUTO PRINCIPALE ---
 st.markdown("""
     <div class="header-container">
         <img src="{}" class="logo-img">
