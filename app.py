@@ -4,7 +4,7 @@ import pandas as pd
 # 1. CONFIGURAZIONE PAGINA
 st.set_page_config(page_title="TEP - Tire Exchange Program", layout="wide", page_icon="🛞")
 
-# 2. CSS AGGIORNATO (Toggle Style e Tabelle)
+# 2. CSS PERSONALIZZATO
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
@@ -17,22 +17,21 @@ st.markdown("""
         font-weight: bold !important; 
     }
 
-    /* STILE PER IL TOGGLE (Interruttore) */
-    /* Rendiamo il checkbox di Streamlit simile a un interruttore */
-    .stCheckbox > label > div[float="left"] {
-        background-color: #0B1D45 !important; /* Sfondo dell'interruttore */
+    /* TOGGLE BLUE */
+    div[data-testid="stWidgetLabel"] + div [role="switch"][aria-checked="true"] {
+        background-color: #0B1D45 !important;
     }
-    
-    /* TABELLA E INTESTAZIONI */
-    .stDataFrame { background-color: #FFFFFF !important; border-radius: 8px; }
-    
-    /* Centratura e grassetto per intestazioni tabella */
-    [data-testid="stTable"] th, [data-testid="stDataFrame"] th {
-        text-align: center !important;
+    div[data-testid="stWidgetLabel"] + div [role="switch"][aria-checked="false"] {
+        background-color: #707070 !important;
+    }
+
+    /* TABELLA - Forzatura stile per rendere i titoli in grassetto */
+    .stDataFrame th {
         font-weight: bold !important;
         color: #0B1D45 !important;
+        background-color: #F0F2F6 !important;
     }
-    
+
     /* BOTTONE DOWNLOAD */
     .stDownloadButton button { 
         background-color: #FBBD00 !important; 
@@ -67,24 +66,20 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("🔍 Ricerca Cliente")
     
-    # INTERRUTTORE TIPO TOGGLE
-    # Usiamo lo st.toggle (disponibile nelle versioni recenti di Streamlit)
-    on = st.toggle('Attiva ricerca per Codice Cliente', help="Sposta a destra per cercare per codice, a sinistra per nome")
+    on = st.toggle('Ricerca per codice')
     
     df_rep = df[df['Sales Representative'] == sales_rep]
     
     if on:
-        st.write("📌 Ricerca attuale: **CODICE**")
         codici_lista = sorted(df_rep['Codice Cliente'].unique())
-        cliente_codice = st.selectbox("Seleziona Codice", codici_lista)
+        cliente_codice = st.selectbox("Seleziona Codice Cliente", codici_lista)
         cliente_nome = df_rep[df_rep['Codice Cliente'] == cliente_codice]['Nome Cliente'].iloc[0]
     else:
-        st.write("📌 Ricerca attuale: **NOME**")
         nomi_lista = sorted(df_rep['Nome Cliente'].unique())
-        cliente_nome = st.selectbox("Seleziona Nome Cliente", nomi_lista)
+        cliente_nome = st.selectbox("Seleziona Ragione Sociale", nomi_lista)
         cliente_codice = df_rep[df_rep['Nome Cliente'] == cliente_nome]['Codice Cliente'].iloc[0]
 
-# --- VISUALIZZAZIONE ---
+# --- VISUALIZZAZIONE PRINCIPALE ---
 st.title("🛞 TEP: Tire Exchange Program")
 
 st.subheader(f"Riepilogo pneumatici restituibili: {cliente_nome}")
@@ -95,11 +90,46 @@ df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
 if not df_display.empty:
     df_view = df_display[['Size & Type', 'Quantità Iniziale', 'Quantità restituibile']]
     
-    # Applichiamo il grassetto e la centratura
-    styled_df = df_view.style.set_properties(**{'text-align': 'center'}, subset=['Quantità Iniziale', 'Quantità restituibile'])\
-                             .set_properties(**{'font-weight': 'bold'}, subset=['Quantità restituibile'])
+    # 4. CONFIGURAZIONE COLONNE (Per allineamento centrato di titoli e numeri)
+    st.dataframe(
+        df_view,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Size & Type": st.column_config.TextColumn(
+                "Size & Type",
+                width="large",
+            ),
+            "Quantità Iniziale": st.column_config.NumberColumn(
+                "Quantità Iniziale",
+                help="Stock caricato all'inizio della stagione",
+                format="%d",
+                width="medium",
+            ),
+            "Quantità restituibile": st.column_config.NumberColumn(
+                "Quantità restituibile",
+                help="Quantità calcolata che può essere resa",
+                format="%d",
+                width="medium",
+            ),
+        }
+    )
     
-    st.dataframe(styled_df, use_container_width=True, hide_index=True)
+    # CSS aggiuntivo specifico per forzare il grassetto e la centratura visiva delle celle numeriche
+    st.markdown("""
+        <style>
+            /* Forza il testo delle celle numeriche al centro */
+            [data-testid="stTable"] td:nth-child(2), [data-testid="stTable"] td:nth-child(3) {
+                text-align: center !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
     
     st.markdown("---")
-    st.download_button(label=f"📥 SCARICA MODULO RESO TEP", data=df_view.to_csv(index=False), file_name=f"TEP_{cliente_codice}.csv")
+    csv = df_view.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label=f"📥 SCARICA MODULO RESO PER {cliente_nome}", 
+        data=csv, 
+        file_name=f"TEP_{cliente_codice}.csv", 
+        mime='text/csv'
+    )
