@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#FBBD00" # Il colore dei tasti e degli evidenziatori (es. Rosso)
+backgroundColor = "#0B1D45" # Sfondo principale
+secondaryBackgroundColor = "#FBBD00" # Colore della barra laterale
+textColor = "#0B1D45"
+font = "sans serif"
