@@ -7,98 +7,87 @@ st.set_page_config(page_title="TEP - Program 2026", layout="wide", page_icon="�
 LOGO_MAIN    = "https://github.com/tommasocoerini/tep/blob/main/logo.png?raw=true"
 LOGO_SIDEBAR = "https://github.com/tommasocoerini/tep/blob/main/logo2.png?raw=true"
 
-# st.logo() mette l'immagine nell'area header della sidebar (sopra tutto)
+# st.logo() con immagine reale — serve solo per "occupare" lo slot header
+# Il CSS poi sovrascrive le dimensioni
 st.logo(LOGO_SIDEBAR, link=None)
 
-st.markdown("""
+st.markdown(f"""
     <style>
-    .main { background-color: #0B1D45 !important; }
+    .main {{ background-color: #0B1D45 !important; }}
 
     /* SIDEBAR */
-    [data-testid="stSidebar"] { background-color: #FBBD00 !important; }
+    [data-testid="stSidebar"] {{ background-color: #FBBD00 !important; }}
 
-    /* Nasconde l'header nativo di Streamlit nella sidebar (hamburger menu area) */
-    [data-testid="stSidebarHeader"] {
+    /* HEADER SIDEBAR: diventa il contenitore del logo a piena larghezza */
+    [data-testid="stSidebarHeader"] {{
         background-color: #FBBD00 !important;
-        padding: 0.5rem 1rem !important;
-    }
+        background-image: url('{LOGO_SIDEBAR}') !important;
+        background-repeat: no-repeat !important;
+        background-size: contain !important;
+        background-position: left center !important;
+        min-height: 80px !important;
+        padding: 12px 16px !important;
+    }}
 
-    /* Forza dimensione logo grande — attacca ogni possibile elemento figlio */
-    [data-testid="stLogo"],
-    [data-testid="stLogo"] > *,
-    [data-testid="stLogo"] a,
-    [data-testid="stLogo"] a > * {
-        height: auto !important;
-        max-height: none !important;
-        width: 100% !important;
-        max-width: none !important;
-    }
-    [data-testid="stLogo"] img,
-    [data-testid="stLogo"] picture,
-    [data-testid="stLogo"] picture img,
-    [data-testid="stLogo"] svg {
-        height: auto !important;
-        max-height: none !important;
-        width: 100% !important;
-        max-width: none !important;
-        object-fit: contain !important;
-        display: block !important;
-    }
+    /* Nasconde l'img nativa di st.logo() — la sostituiamo con il background */
+    [data-testid="stLogo"] {{
+        display: none !important;
+    }}
 
-    .sidebar-section-title {
+    .sidebar-section-title {{
         color: #0B1D45 !important;
         font-weight: 800 !important;
         font-size: 1.1rem !important;
         margin-bottom: 8px !important;
         margin-top: 10px !important;
         display: block;
-    }
+    }}
 
-    div[data-baseweb="select"] {
+    div[data-baseweb="select"] {{
         border: 2px solid #0B1D45 !important;
         background-color: #0B1D45 !important;
-    }
-    div[data-baseweb="select"] div { color: #FBBD00 !important; }
+    }}
+    div[data-baseweb="select"] div {{ color: #FBBD00 !important; }}
 
-    .header-container {
+    .header-container {{
         display: flex; align-items: center;
         gap: 20px; padding-bottom: 20px;
-    }
-    .logo-img { width: 80px; height: auto; }
-    .main-title {
+    }}
+    .logo-img {{ width: 80px; height: auto; }}
+    .main-title {{
         color: #FBBD00 !important; font-weight: bold !important;
         font-size: 2.5rem !important; margin: 0 !important;
-    }
-    .sub-title {
+    }}
+    .sub-title {{
         color: #FFFFFF !important; font-size: 1.1rem !important;
         margin: 0 !important; opacity: 0.8;
-    }
+    }}
 
-    .tep-table {
+    .tep-table {{
         width: 100%; border-collapse: separate; border-spacing: 0;
         border-radius: 12px; overflow: hidden;
         font-family: 'Segoe UI', sans-serif;
         box-shadow: 0 4px 24px rgba(0,0,0,0.4); margin-bottom: 25px;
-    }
-    .tep-table thead tr { background-color: #FBBD00; }
-    .tep-table thead th {
+    }}
+    .tep-table thead tr {{ background-color: #FBBD00; }}
+    .tep-table thead th {{
         color: #0B1D45 !important; font-weight: 800;
         text-transform: uppercase; padding: 12px 16px; text-align: center;
-    }
-    .tep-table tbody tr:nth-child(odd)  { background-color: #112259; }
-    .tep-table tbody tr:nth-child(even) { background-color: #0D1D48; }
-    .tep-table tbody td { color: #E8EDF8 !important; padding: 11px 16px; text-align: center; }
-    .tep-table tbody td:first-child { text-align: left; padding-left: 20px; }
-    .tep-table tbody td:last-child { color: #FBBD00 !important; font-weight: 800; font-size: 1.1rem; }
+    }}
+    .tep-table tbody tr:nth-child(odd)  {{ background-color: #112259; }}
+    .tep-table tbody tr:nth-child(even) {{ background-color: #0D1D48; }}
+    .tep-table tbody td {{ color: #E8EDF8 !important; padding: 11px 16px; text-align: center; }}
+    .tep-table tbody td:first-child {{ text-align: left; padding-left: 20px; }}
+    .tep-table tbody td:last-child {{ color: #FBBD00 !important; font-weight: 800; font-size: 1.1rem; }}
 
-    .stDownloadButton button {
+    .stDownloadButton button {{
         background-color: #FBBD00 !important;
         color: #0B1D45 !important;
         border: 2px solid #0B1D45 !important;
         font-weight: bold; width: 100%;
         padding: 15px; border-radius: 8px;
         text-transform: uppercase;
-    }
+    }}
     </style>
 """, unsafe_allow_html=True)
 
