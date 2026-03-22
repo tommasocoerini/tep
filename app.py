@@ -4,7 +4,7 @@ import pandas as pd
 # 1. CONFIGURAZIONE PAGINA
 st.set_page_config(page_title="TEP - Tire Exchange Program", layout="wide", page_icon="🛞")
 
-# 2. CSS "FORZATO" (SELETTORI AD ALTA SPECIFICITÀ)
+# 2. CSS "HARDCORE" PER COSTRINGERE L'INTERFACCIA
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
@@ -17,36 +17,35 @@ st.markdown("""
         font-weight: bold !important; 
     }
 
-    /* --- FIX CHECKBOX: BORDO BLU VISIBILE --- */
-    /* Questo punta direttamente al quadratino della checkbox */
-    [data-testid="stCheckbox"] [data-checked="false"] {
+    /* --- FIX CHECKBOX: BORDO BLU NETTO --- */
+    /* Forza il bordo del quadratino quando è vuoto */
+    div[data-testid="stCheckbox"] div[data-baseweb="checkbox"] {
         border: 2px solid #0B1D45 !important;
     }
-    [data-testid="stCheckbox"] [data-checked="true"] {
+    /* Forza il colore quando è selezionato */
+    div[data-testid="stCheckbox"] div[aria-checked="true"] {
         background-color: #0B1D45 !important;
-        border: 2px solid #0B1D45 !important;
     }
 
-    /* --- FIX TABELLA: ALLINEAMENTO CENTRALE --- */
-    /* Forza l'allineamento di tutte le celle e delle intestazioni */
-    [data-testid="stDataFrame"] div[data-testid="stTable"] th,
-    [data-testid="stDataFrame"] div[data-testid="stTable"] td,
-    div[role="gridcell"], 
-    div[role="columnheader"] {
-        text-align: center !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    /* Titoli in grassetto Blue */
-    div[role="columnheader"] {
-        font-weight: bold !important;
+    /* --- FIX TABELLA (st.table) --- */
+    /* Forza ALLINEAMENTO CENTRALE su titoli e celle */
+    table {
+        width: 100%;
+        background-color: white !important;
         color: #0B1D45 !important;
+        border-radius: 10px;
     }
-
-    /* Grassetto per i dati della colonna Quantità Restituibile */
-    [data-testid="stDataFrame"] div[role="row"] div[role="gridcell"]:nth-child(3) {
+    th {
+        text-align: center !important;
+        font-weight: bold !important;
+        background-color: #f0f2f6 !important;
+    }
+    td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    /* Grassetto per l'ultima colonna (Quantità restituibile) */
+    td:last-child {
         font-weight: bold !important;
     }
 
@@ -82,7 +81,7 @@ def load_data():
 
 df = load_data()
 
-# --- INTERFACCIA SIDEBAR ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.subheader("👤 Sales Representative")
     sales_reps = sorted(df['Sales Representative'].unique())
@@ -91,7 +90,7 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("🔍 Ricerca Cliente")
     
-    # Checkbox
+    # La checkbox ora ha il bordo forzato via CSS
     usa_codice = st.checkbox("Cerca per Codice Cliente")
     
     df_rep = df[df['Sales Representative'] == sales_rep]
@@ -105,7 +104,7 @@ with st.sidebar:
         cliente_nome = st.selectbox("Seleziona Ragione Sociale", nomi_lista)
         cliente_codice = df_rep[df_rep['Nome Cliente'] == cliente_nome]['Codice Cliente'].iloc[0]
 
-# --- VISUALIZZAZIONE PRINCIPALE ---
+# --- MAIN ---
 st.title("🛞 TEP: Tire Exchange Program")
 
 st.subheader(f"Riepilogo pneumatici restituibili: {cliente_nome}")
@@ -114,17 +113,10 @@ st.write(f"**Codice:** {cliente_codice} | **Sales Rep:** {sales_rep}")
 df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
 
 if not df_display.empty:
+    # Usiamo st.table invece di st.dataframe per avere il controllo totale del CSS
     df_view = df_display[['Size & Type', 'Quantità Iniziale', 'Quantità restituibile']]
-    
-    # Utilizziamo st.table invece di st.dataframe se il problema persiste.
-    # st.table è una tabella statica molto più facile da stilizzare con il CSS.
     st.table(df_view)
     
     st.markdown("---")
     csv = df_view.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label=f"📥 SCARICA MODULO RESO PER {cliente_nome}", 
-        data=csv, 
-        file_name=f"TEP_{cliente_codice}.csv", 
-        mime='text/csv'
-    )
+    st.download_button(label=f"📥 SCARICA MODULO RESO TEP", data=csv, file_name=f"TEP_{cliente_codice}.csv")
