@@ -2,11 +2,19 @@ import streamlit as st
 import pandas as pd
 import io
 
+# 1. CONFIGURAZIONE PAGINA
 st.set_page_config(page_title="TEP - Program 2026", layout="wide", page_icon="📊")
 
+# LINK DIRETTI AI TUOI ASSET SU GITHUB
 LOGO_MAIN    = "https://github.com/tommasocoerini/tep/blob/main/logo.png?raw=true"
 LOGO_SIDEBAR = "https://github.com/tommasocoerini/tep/blob/main/logo2.png?raw=true"
+# Link RAW per leggere il file Excel dei Sales Rep
+SALES_REPS_URL = "https://github.com/tommasocoerini/tep/raw/1e81323d556f23bdbc49863f47faa8d26d4c0696/sales_reps.xlsx"
 
+# ATTIVAZIONE LOGO SIDEBAR
+st.logo(LOGO_SIDEBAR)
+
+# 2. CSS COMPLETO
 st.markdown(f"""
     <style>
     .main {{ background-color: #0B1D45 !important; }}
@@ -14,25 +22,21 @@ st.markdown(f"""
     /* SIDEBAR */
     [data-testid="stSidebar"] {{ background-color: #FBBD00 !important; }}
 
-    /* HEADER SIDEBAR: diventa il contenitore del logo a piena larghezza */
+    /* HEADER SIDEBAR (LOGO) */
     [data-testid="stSidebarHeader"] {{
         background-color: #FBBD00 !important;
         background-image: url('{LOGO_SIDEBAR}') !important;
         background-repeat: no-repeat !important;
         background-size: contain !important;
-        background-position: left center !important;
-        min-height: 60px !important;
-        padding: 8px 16px !important;
+        background-position: center !important;
+        min-height: 120px !important;
+        margin-top: -30px !important;
+        padding: 0 !important;
     }}
 
-    /* Nasconde l'img nativa di st.logo() — la sostituiamo con il background */
     [data-testid="stLogo"] {{
         visibility: hidden !important;
-        opacity: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        position: absolute !important;
-        pointer-events: none !important;
+        display: none !important;
     }}
 
     .sidebar-section-title {{
@@ -50,6 +54,7 @@ st.markdown(f"""
     }}
     div[data-baseweb="select"] div {{ color: #FBBD00 !important; }}
 
+    /* HEADER PRINCIPALE */
     .header-container {{
         display: flex; align-items: center;
         gap: 20px; padding-bottom: 20px;
@@ -64,6 +69,7 @@ st.markdown(f"""
         margin: 0 !important; opacity: 0.8;
     }}
 
+    /* TABELLA HTML */
     .tep-table {{
         width: 100%; border-collapse: separate; border-spacing: 0;
         border-radius: 12px; overflow: hidden;
@@ -92,16 +98,31 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
+# 3. FUNZIONI DATI
 @st.cache_data
-def load_data():
-    data = {
-        'Sales Representative': ['Mario Rossi', 'Mario Rossi', 'Luigi Bianchi', 'Luigi Bianchi'],
-        'Codice Cliente': ['A105', 'B200', 'C001', 'A050'],
-        'Nome Cliente': ['Zeta Tyres', 'Alpha Gomme', 'Beta Ruote', 'Delta Service'],
-        'Size & Type': ['205/55 R16 Summer', '225/45 R17 Winter', '195/65 R15 AllSeason', '245/40 R18 Sport'],
-        'Quantità Iniziale': [10, 20, 15, 30],
-        'Quantità restituibile': [7, 14, 0, 21]
-    }
+def load_sales_reps():
+    try:
+        # Legge i Sales Rep dal tuo Excel su GitHub
+        df_reps = pd.read_excel(SALES_REPS_URL)
+        df_reps.columns = df_reps.columns.str.strip()
+        return df_reps
+    except Exception as e:
+        st.error(f"Errore caricamento database agenti: {e}")
+        return pd.DataFrame({'Sales Representative': ['Mario Rossi', 'Luigi Bianchi']})
+
+@st.cache_data
+def load_mock_data(reps_list):
+    """Genera dati temporanei finché non avremo i file clienti reali"""
+    data = []
+    for i, rep in enumerate(reps_list):
+        data.append({
+            'Sales Representative': rep,
+            'Codice Cliente': f'ABC{100+i}',
+            'Nome Cliente': f'Cliente Demo {i+1}',
+            'Size & Type': '205/55 R16 Summer',
+            'Quantità Iniziale': 24,
+            'Quantità restituibile': 12
+        })
     return pd.DataFrame(data)
 
 def to_excel(df, codice, ragione_sociale):
@@ -125,32 +146,36 @@ def to_excel(df, codice, ragione_sociale):
             worksheet.set_column(i, i, max_len)
     return output.getvalue()
 
-df_all = load_data()
+# --- CARICAMENTO DATI ---
+df_reps_db = load_sales_reps()
+lista_nomi_reps = sorted(df_reps_db['Sales Representative'].unique())
+df_all = load_mock_data(lista_nomi_reps)
 
+# --- SIDEBAR ---
 with st.sidebar:
     st.markdown('<span class="sidebar-section-title">Seleziona Sales Representative</span>', unsafe_allow_html=True)
-    sales_reps = sorted(df_all['Sales Representative'].unique())
-    sales_rep = st.selectbox("Seleziona Sales Representative", sales_reps, label_visibility="collapsed")
+    sales_rep = st.selectbox("Seleziona Sales Representative", lista_nomi_reps, label_visibility="collapsed")
 
     st.markdown("---")
 
     st.markdown('<span class="sidebar-section-title">Seleziona Cliente</span>', unsafe_allow_html=True)
-    df_rep = df_all[df_all['Sales Representative'] == sales_rep]
-    nomi_lista = sorted(df_rep['Nome Cliente'].unique())
-    cliente_nome = st.selectbox("Seleziona Cliente", nomi_lista, label_visibility="collapsed")
+    df_rep_filtered = df_all[df_all['Sales Representative'] == sales_rep]
+    nomi_clienti = sorted(df_rep_filtered['Nome Cliente'].unique())
+    cliente_nome = st.selectbox("Seleziona Cliente", nomi_clienti, label_visibility="collapsed")
 
-    cliente_codice = df_rep[df_rep['Nome Cliente'] == cliente_nome]['Codice Cliente'].iloc[0]
-    df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
+    cliente_codice = df_rep_filtered[df_rep_filtered['Nome Cliente'] == cliente_nome]['Codice Cliente'].iloc[0]
+    df_display = df_rep_filtered[df_rep_filtered['Codice Cliente'] == cliente_codice].copy()
 
-st.markdown("""
+# --- CONTENUTO PRINCIPALE ---
+st.markdown(f"""
     <div class="header-container">
-        <img src="{}" class="logo-img">
+        <img src="{LOGO_MAIN}" class="logo-img">
         <div>
             <h1 class="main-title">TEP: Tire Exchange Program</h1>
             <p class="sub-title">Gestione Resi Stagionali 2026</p>
         </div>
     </div>
-""".format(LOGO_MAIN), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 st.write(f"**Cliente:** {cliente_nome} ({cliente_codice}) | **Sales Rep:** {sales_rep}")
 
@@ -161,6 +186,7 @@ if not df_display.empty:
         qty_rest = row['Quantità restituibile']
         qty_cell = '<span style="color:#8899BB;">0</span>' if qty_rest == 0 else str(int(qty_rest))
         rows.append(f"<tr><td>{row['Size & Type']}</td><td>{int(row['Quantità Iniziale'])}</td><td>{qty_cell}</td></tr>")
+    
     rows_html = "".join(rows)
     table_html = (
         f'<div style="overflow-x:auto;"><table class="tep-table">'
