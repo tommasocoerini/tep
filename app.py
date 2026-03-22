@@ -7,8 +7,6 @@ st.set_page_config(page_title="TEP - Program 2026", layout="wide", page_icon="ðŸ
 LOGO_MAIN    = "https://github.com/tommasocoerini/tep/blob/main/logo.png?raw=true"
 LOGO_SIDEBAR = "https://github.com/tommasocoerini/tep/blob/main/logo2.png?raw=true"
 
-st.logo(LOGO_SIDEBAR, link=None)
-
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
@@ -16,28 +14,8 @@ st.markdown("""
     /* SIDEBAR */
     [data-testid="stSidebar"] { background-color: #FBBD00 !important; }
 
-    /* LOGO: rimuove il cap di altezza imposto da Streamlit */
-    [data-testid="stLogo"] {
-        height: auto !important;
-        max-height: none !important;
-        background-color: transparent !important;
-        padding: 20px 16px 10px 16px !important;
-        width: 100% !important;
-    }
-    [data-testid="stLogo"] img,
-    [data-testid="stLogo"] > img {
-        height: auto !important;
-        max-height: none !important;
-        width: 200px !important;
-        max-width: 200px !important;
-        object-fit: contain !important;
-    }
-    /* Streamlit usa anche un elemento <picture> internamente */
-    [data-testid="stLogo"] picture img {
-        height: auto !important;
-        max-height: none !important;
-        width: 200px !important;
-    }
+    /* Rimuove padding superiore della sidebar per avvicinare il logo al bordo */
+    [data-testid="stSidebarUserContent"] { padding-top: 1rem !important; }
 
     .sidebar-section-title {
         color: #0B1D45 !important;
@@ -132,6 +110,10 @@ def to_excel(df, codice, ragione_sociale):
 df_all = load_data()
 
 with st.sidebar:
+    # Logo a piena larghezza â€” use_container_width garantisce che sia largo come il contenuto della sidebar
+    st.image(LOGO_SIDEBAR, use_container_width=True)
+    st.markdown("---")
+
     st.markdown('<span class="sidebar-section-title">Seleziona Sales Representative</span>', unsafe_allow_html=True)
     sales_reps = sorted(df_all['Sales Representative'].unique())
     sales_rep = st.selectbox("Seleziona Sales Representative", sales_reps, label_visibility="collapsed")
