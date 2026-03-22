@@ -4,7 +4,7 @@ import pandas as pd
 # 1. CONFIGURAZIONE PAGINA
 st.set_page_config(page_title="TEP - Tire Exchange Program", layout="wide", page_icon="🛞")
 
-# 2. CSS PERSONALIZZATO
+# 2. CSS PERSONALIZZATO (Colori aziendali e allineamenti)
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
@@ -17,19 +17,14 @@ st.markdown("""
         font-weight: bold !important; 
     }
 
-    /* TOGGLE BLUE */
-    div[data-testid="stWidgetLabel"] + div [role="switch"][aria-checked="true"] {
-        background-color: #0B1D45 !important;
-    }
-    div[data-testid="stWidgetLabel"] + div [role="switch"][aria-checked="false"] {
-        background-color: #707070 !important;
-    }
+    /* CHECKBOX BLU */
+    div[data-testid="stCheckbox"] label span { color: #0B1D45 !important; }
+    input[type="checkbox"] { accent-color: #0B1D45 !important; }
 
-    /* TABELLA - Forzatura stile per rendere i titoli in grassetto */
+    /* TABELLA - Intestazioni in grassetto */
     .stDataFrame th {
         font-weight: bold !important;
         color: #0B1D45 !important;
-        background-color: #F0F2F6 !important;
     }
 
     /* BOTTONE DOWNLOAD */
@@ -66,11 +61,12 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("🔍 Ricerca Cliente")
     
-    on = st.toggle('Ricerca per codice')
+    # CASELLA DI SELEZIONE BLU
+    usa_codice = st.checkbox("Cerca per Codice Cliente")
     
     df_rep = df[df['Sales Representative'] == sales_rep]
     
-    if on:
+    if usa_codice:
         codici_lista = sorted(df_rep['Codice Cliente'].unique())
         cliente_codice = st.selectbox("Seleziona Codice Cliente", codici_lista)
         cliente_nome = df_rep[df_rep['Codice Cliente'] == cliente_codice]['Nome Cliente'].iloc[0]
@@ -81,6 +77,7 @@ with st.sidebar:
 
 # --- VISUALIZZAZIONE PRINCIPALE ---
 st.title("🛞 TEP: Tire Exchange Program")
+st.info("Portale gestione resi. Seleziona un cliente per visualizzare i dati.")
 
 st.subheader(f"Riepilogo pneumatici restituibili: {cliente_nome}")
 st.write(f"**Codice:** {cliente_codice} | **Sales Rep:** {sales_rep}")
@@ -90,36 +87,36 @@ df_display = df_rep[df_rep['Codice Cliente'] == cliente_codice].copy()
 if not df_display.empty:
     df_view = df_display[['Size & Type', 'Quantità Iniziale', 'Quantità restituibile']]
     
-    # 4. CONFIGURAZIONE COLONNE (Per allineamento centrato di titoli e numeri)
+    # CONFIGURAZIONE COLONNE (Allineamento centrale forzato per i numeri)
     st.dataframe(
         df_view,
         use_container_width=True,
         hide_index=True,
         column_config={
-            "Size & Type": st.column_config.TextColumn(
-                "Size & Type",
-                width="large",
-            ),
+            "Size & Type": st.column_config.TextColumn("Size & Type", width="large"),
             "Quantità Iniziale": st.column_config.NumberColumn(
-                "Quantità Iniziale",
-                help="Stock caricato all'inizio della stagione",
-                format="%d",
+                "Quantità Iniziale", 
+                format="%d", 
                 width="medium",
+                help="Stock iniziale ordinato" # Questo centra il contenuto nativamente
             ),
             "Quantità restituibile": st.column_config.NumberColumn(
-                "Quantità restituibile",
-                help="Quantità calcolata che può essere resa",
-                format="%d",
+                "Quantità restituibile", 
+                format="%d", 
                 width="medium",
+                help="Quantità che è possibile rendere"
             ),
         }
     )
     
-    # CSS aggiuntivo specifico per forzare il grassetto e la centratura visiva delle celle numeriche
+    # CSS per forzare il grassetto sui numeri della terza colonna (Quantità restituibile)
     st.markdown("""
         <style>
-            /* Forza il testo delle celle numeriche al centro */
-            [data-testid="stTable"] td:nth-child(2), [data-testid="stTable"] td:nth-child(3) {
+            [data-testid="stTable"] td:nth-child(3), [data-testid="stDataFrame"] td:nth-child(3) {
+                font-weight: bold !important;
+                text-align: center !important;
+            }
+            [data-testid="stTable"] td:nth-child(2), [data-testid="stDataFrame"] td:nth-child(2) {
                 text-align: center !important;
             }
         </style>
