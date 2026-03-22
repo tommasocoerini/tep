@@ -9,12 +9,25 @@ st.set_page_config(page_title="TEP - Program 2026", layout="wide", page_icon="ðŸ
 LOGO_MAIN = "https://github.com/tommasocoerini/tep/blob/main/logo.png?raw=true"
 LOGO_SIDEBAR = "https://github.com/tommasocoerini/tep/blob/main/logo2.png?raw=true"
 
-# 2. CSS (Pulito dai conflitti f-string)
+# 2. CSS AGGIORNATO (Fix posizionamento e dimensione Logo Sidebar)
 st.markdown("""
     <style>
     .main { background-color: #0B1D45 !important; }
     
-    /* LAYOUT HEADER PRINCIPALE */
+    /* Rimuove lo spazio vuoto predefinito in alto nella sidebar */
+    [data-testid="stSidebarUserContent"] {
+        padding-top: 20px !important;
+    }
+
+    /* LOGO SIDEBAR - GRANDE E IN ALTO */
+    .sidebar-logo {
+        width: 100%; /* Occupa tutta la larghezza disponibile */
+        max-width: 250px; /* Limite per non farlo sgranare */
+        display: block;
+        margin: 0 auto 30px auto; /* Centrato, con spazio sotto */
+    }
+
+    /* HEADER PRINCIPALE */
     .header-container {
         display: flex;
         align-items: center;
@@ -23,15 +36,6 @@ st.markdown("""
     }
     .logo-img { width: 80px; height: auto; }
     
-    /* LOGO SIDEBAR */
-    .sidebar-logo {
-        width: 120px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        margin-bottom: 20px;
-    }
-
     .main-title { 
         color: #FBBD00 !important; 
         font-weight: bold !important; 
@@ -45,7 +49,7 @@ st.markdown("""
         opacity: 0.8;
     }
 
-    /* SIDEBAR */
+    /* SIDEBAR COLORI E TESTI */
     [data-testid="stSidebar"] { background-color: #FBBD00 !important; }
     
     .sidebar-section-title {
@@ -91,14 +95,10 @@ st.markdown("""
         padding: 15px; border-radius: 8px;
         text-transform: uppercase;
     }
-    .stDownloadButton button:hover {
-        background-color: #FFFFFF !important;
-        color: #0B1D45 !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. FUNZIONI DATI E EXCEL
+# 3. FUNZIONI DATI E EXCEL (Invariate)
 @st.cache_data
 def load_data():
     data = {
@@ -136,7 +136,7 @@ df_all = load_data()
 
 # --- SIDEBAR ---
 with st.sidebar:
-    # Inserimento Logo Sidebar
+    # Logo Sidebar centrato e grande
     st.markdown('<img src="{}" class="sidebar-logo">'.format(LOGO_SIDEBAR), unsafe_allow_html=True)
     
     st.markdown('<span class="sidebar-section-title">Seleziona Sales Representative</span>', unsafe_allow_html=True)
